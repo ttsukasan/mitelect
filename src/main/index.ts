@@ -1,74 +1,61 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+// @ts-ignore
+import { app, Menu, Tray, ipcMain, Event, nativeImage } from 'electron'
+// @ts-ignore
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import path from 'path'
+import icon16 from '../../resources/fish_16.png?asset'
+import icon24 from '../../resources/fish_24.png?asset'
+import icon32 from '../../resources/fish_32.png?asset'
 
-function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
+let tray: Tray | null = null
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+// 最適なサイズのアイコンを選択
+function getIcon() {
+  // macOSのRetinaディスプレイ向け
+  if (process.platform === 'darwin' && nativeImage.createFromPath(path.join(__dirname, '../../resources/icon-32.png')).isMacTemplateImage) {
+    return icon32
   }
+
+  // Windowsの高DPI環境向け
+  if (process.platform === 'win32' && (process.getSystemMetrics(0) > 1920 || process.getSystemMetrics(1) > 1080)) {
+    return icon24
+  }
+
+  // 通常環境（または16x16が推奨される場合）
+  return icon16
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+
 app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  // タスクバートレイのアイコンとメニュー設定
+  tray = new Tray(getIcon())
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
+  const contextMenu = Menu.buildFromTemplate([
+    { label: '機能1', click: () => runFeature1() },
+    { label: '機能2', click: () => runFeature2() },
+    { type: 'separator' },
+    { label: '終了', role: 'quit' },
+  ])
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  tray.setToolTip('Mitelecton')
+  tray.setContextMenu(contextMenu)
 
-  createWindow()
-
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+  // Windows用ユーザーモデルIDを設定
+  app.setAppUserModelId('com.electron')
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+// 各機能の処理内容（バックグラウンドスクリプト）
+const runFeature1 = () => {
+  console.log('機能1を実行')
+  // 機能1の具体的な処理をここに追加
+}
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+const runFeature2 = () => {
+  console.log('機能2を実行')
+  // 機能2の具体的な処理をここに追加
+}
+
+// ウィンドウを開かず、終了時の挙動をカスタマイズ
+app.on('window-all-closed', (event: Event) => {
+  event.preventDefault() // ウィンドウを閉じてもアプリが終了しないように設定
+})
