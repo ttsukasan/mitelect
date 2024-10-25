@@ -1,13 +1,49 @@
 // @ts-ignore
-import { app, Menu, Tray, ipcMain, Event, nativeImage } from 'electron'
+import { app, Menu, Tray, ipcMain, Event, nativeImage, shell } from 'electron'
 // @ts-ignore
 import { join } from 'path'
 import path from 'path'
+import fs from 'fs'
 import icon16 from '../../resources/fish_16.png?asset'
 import icon24 from '../../resources/fish_24.png?asset'
 import icon32 from '../../resources/fish_32.png?asset'
 
 let tray: Tray | null = null
+const configFilePath = path.join(app.getPath('userData'), 'config.json')
+console.log(configFilePath)
+
+// 設定ファイルの存在確認・作成
+function initializeConfig() {
+  if (!fs.existsSync(configFilePath)) {
+    const defaultConfig = {
+      miterasCode: "A123456",
+      userEmail: "your.name@example.com",
+      userPassword: "Passw0rd",
+    }
+    fs.writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2))
+  }
+}
+
+// 設定ファイルからmiterasCodeを取得してURLを開く
+function openMiteras() {
+  const config = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'))
+  const miterasCode = config.miterasCode
+  const url = `https://example.com/${miterasCode}`
+  shell.openExternal(url).then((result) => {
+    if (result) {
+      console.error('Failed to open Miteras URL:', result)
+    }
+  })
+}
+
+// 設定ファイルをテキストエディタで開く
+function openConfigFile() {
+  shell.openPath(configFilePath).then((result) => {
+    if (result) {
+      console.error('Failed to open config file:', result)
+    }
+  })
+}
 
 // 最適なサイズのアイコンを選択
 function getIcon() {
@@ -25,15 +61,19 @@ function getIcon() {
   return icon16
 }
 
-
 app.whenReady().then(() => {
+  // 設定ファイルの初期化
+  initializeConfig()
+
   // タスクバートレイのアイコンとメニュー設定
   tray = new Tray(getIcon())
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: 'Miterasを開く', click: openMiteras }, // Miterasを開くメニュー
     { label: '機能1', click: () => runFeature1() },
     { label: '機能2', click: () => runFeature2() },
     { type: 'separator' },
+    { label: '環境設定', click: openConfigFile }, // 設定ファイルを開くメニュー
     { label: '終了', role: 'quit' },
   ])
 
@@ -55,7 +95,7 @@ const runFeature2 = () => {
   // 機能2の具体的な処理をここに追加
 }
 
-// ウィンドウを開かず、終了時の挙動をカスタマイズ
+// アプリが終了しないように設定
 app.on('window-all-closed', (event: Event) => {
-  event.preventDefault() // ウィンドウを閉じてもアプリが終了しないように設定
+  event.preventDefault()
 })
