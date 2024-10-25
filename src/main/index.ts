@@ -2,10 +2,17 @@ import { app, Menu, Tray, Event, shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { getIcon } from './iconUtil'
+import { openMiteras } from './miterasHandler' // 新しく作成したファイルからopenMiterasをインポート
 
-const configFilePath = path.join(app.getPath('userData'), 'config.json')
-let config: { miterasCode: string; userEmail: string; userPassword: string }
 let tray: Tray | null = null
+const configFilePath = path.join(app.getPath('userData'), 'config.json')
+
+let config: {
+  miterasCode: string
+  userEmail: string
+  userPassword: string
+  readonly miterasUrl: string
+}
 
 // 設定ファイルの存在確認・作成・読み込み
 function initializeConfig() {
@@ -17,18 +24,15 @@ function initializeConfig() {
     }
     fs.writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2))
   }
-  // 設定ファイルを読み込んでconfigに代入
-  config = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'))
-}
 
-// 設定ファイルからmiterasCodeを取得してURLを開く
-function openMiteras() {
-  const url = `https://example.com/${config.miterasCode}`
-  shell.openExternal(url).then((result) => {
-    if (result) {
-      console.error('Failed to open Miteras URL:', result)
+  const loadedConfig = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'))
+
+  config = {
+    ...loadedConfig,
+    get miterasUrl() {
+      return `https://kintai.miteras.jp/${this.miterasCode}/login`
     }
-  })
+  }
 }
 
 // 設定ファイルをテキストエディタで開く
@@ -48,7 +52,7 @@ app.whenReady().then(() => {
   tray = new Tray(getIcon())
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Miterasを開く', click: openMiteras },
+    { label: 'Miterasを開く', click: openMiteras }, // 分離されたopenMiterasを呼び出し
     { label: '機能1', click: () => runFeature1() },
     { label: '機能2', click: () => runFeature2() },
     { type: 'separator' },
