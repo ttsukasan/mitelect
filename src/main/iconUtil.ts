@@ -1,8 +1,8 @@
 import { nativeImage } from 'electron'
 import path from 'path'
-import icon16 from '../../resources/fish_16.png?asset'
-import icon24 from '../../resources/fish_24.png?asset'
-import icon32 from '../../resources/fish_32.png?asset'
+import icon16 from '../../resources/sunfish_16.png?asset'
+import icon24 from '../../resources/sunfish_24.png?asset'
+import icon32 from '../../resources/sunfish_32.png?asset'
 
 // 最適なサイズのアイコンを選択
 export function getIcon() {

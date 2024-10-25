@@ -1,16 +1,16 @@
-import { app, Menu, Tray, Event, shell } from 'electron'
+import { app, Menu, Tray, shell, Notification } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { getIcon } from './iconUtil'
-import { openMiteras } from './miterasHandler' // 新しく作成したファイルからopenMiterasをインポート
+import MiterasClient from './MiterasClient'
 
 let tray: Tray | null = null
 const configFilePath = path.join(app.getPath('userData'), 'config.json')
 
 let config: {
   miterasCode: string
-  userEmail: string
-  userPassword: string
+  username: string
+  password: string
   readonly miterasUrl: string
 }
 
@@ -19,8 +19,8 @@ function initializeConfig() {
   if (!fs.existsSync(configFilePath)) {
     const defaultConfig = {
       miterasCode: 'A123456',
-      userEmail: 'your.name@example.com',
-      userPassword: 'Passw0rd'
+      username: 'your.name',
+      password: 'Passw0rd'
     }
     fs.writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2))
   }
@@ -30,7 +30,7 @@ function initializeConfig() {
   config = {
     ...loadedConfig,
     get miterasUrl() {
-      return `https://kintai.miteras.jp/${this.miterasCode}/login`
+      return `https://kintai.miteras.jp/${this.miterasCode}/`
     }
   }
 }
@@ -44,6 +44,33 @@ function openConfigFile() {
   })
 }
 
+// デスクトップ通知のヘルパー関数
+function showNotification(title: string, body: string) {
+  new Notification({ title, body }).show()
+}
+
+// サイトを開く
+function openBrowser() {
+  const url = `${config.miterasUrl}/login`
+  shell.openExternal(url).catch((error) => {
+    console.error('Failed to open URL:', error)
+  })
+}
+
+// 出社打刻を実行
+function clockIn(){
+  const cli = new MiterasClient(config.miterasUrl, config.username, config.password)
+  cli.login().then(() => cli.clockIn().then()).catch((error) => {
+    console.error(error)
+    showNotification('打刻失敗', error.message)
+  })
+}
+
+// 退社打刻を実行
+function clockOut(){
+  console.log('clockOut')
+}
+
 app.whenReady().then(() => {
   // 設定ファイルの初期化と読み込み
   initializeConfig()
@@ -52,10 +79,10 @@ app.whenReady().then(() => {
   tray = new Tray(getIcon())
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Miterasを開く', click: openMiteras }, // 分離されたopenMiterasを呼び出し
-    { label: '機能1', click: () => runFeature1() },
-    { label: '機能2', click: () => runFeature2() },
+    { label: '出社打刻', click: clockIn },
+    { label: '退社打刻', click: clockOut },
     { type: 'separator' },
+    { label: 'Miterasを開く', click: openBrowser },
     { label: '環境設定', click: openConfigFile },
     { label: '終了', role: 'quit' }
   ])
@@ -66,17 +93,10 @@ app.whenReady().then(() => {
   app.setAppUserModelId('com.electron')
 })
 
-// 各機能の処理内容（バックグラウンドスクリプト）
-const runFeature1 = () => {
-  console.log('機能1を実行')
-}
-
-const runFeature2 = () => {
-  console.log('機能2を実行')
-}
-
-app.on('window-all-closed', (event: Event) => {
-  event.preventDefault()
+// メインウィンドウを作成しないことで、タスクバーにアイコンが表示されなくなる
+app.on('window-all-closed', (event) => {
+  event.preventDefault() // ウィンドウが閉じられてもアプリが終了しないようにする
 })
+
 
 export { config }
