@@ -1,7 +1,7 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
-import { wrapper } from 'axios-cookiejar-support'
-import { CookieJar } from 'tough-cookie'
+import {wrapper} from 'axios-cookiejar-support'
+import {CookieJar} from 'tough-cookie'
 
 export default class MiterasClient {
   private baseUrl: string
@@ -10,9 +10,13 @@ export default class MiterasClient {
   private client: any
   private baseHeaders: object
   private loginUrl: string
+  // @ts-ignore
   private authUrl: string
   private cicoUrl: string
+  // @ts-ignore
   private submitClockInUrl: string
+  // @ts-ignore
+  private submitClockOutUrl: string
 
   constructor(baseUrl: string, username: string, password: string) {
     this.baseUrl = baseUrl
@@ -21,18 +25,19 @@ export default class MiterasClient {
 
     // axiosインスタンスにcookieサポートを追加
     const jar = new CookieJar()
-    this.client = wrapper(axios.create({ jar, withCredentials: true }))
+    this.client = wrapper(axios.create({jar, withCredentials: true}))
 
     this.baseHeaders = {
       'Accept-Language': 'ja',
       'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
     }
 
     this.loginUrl = `${this.baseUrl}login`
     this.authUrl = `${this.baseUrl}auth`
     this.cicoUrl = `${this.baseUrl}cico`
     this.submitClockInUrl = `${this.baseUrl}submitClockIn`
+    this.submitClockOutUrl = `${this.baseUrl}submitClockOut`
   }
 
   // 現在の日付を yyyy-mm-dd 形式で取得
@@ -49,7 +54,7 @@ export default class MiterasClient {
     const $ = cheerio.load(axiosResponseData)
     const csrfToken = $('input[name="_csrf"]').val() as string
     if (!csrfToken) {
-      throw new Error('CSRFトークンが取得できませんでした')
+      throw new Error('CSRFトークンが取得できませんでした。')
     }
     return csrfToken
   }
@@ -59,7 +64,7 @@ export default class MiterasClient {
     const $ = cheerio.load(axiosResponseData)
     const csrfToken = $('meta[name="_csrf"]').attr('content')
     if (!csrfToken) {
-      throw new Error('CSRFトークンが取得できませんでした')
+      throw new Error('CSRFトークンが取得できませんでした。')
     }
     return csrfToken
   }
@@ -68,7 +73,7 @@ export default class MiterasClient {
   public async login(): Promise<this> {
     console.log('ログインを実行します。', this.loginUrl)
 
-    const loginResponse = await this.client.get(this.loginUrl, { headers: this.baseHeaders })
+    const loginResponse = await this.client.get(this.loginUrl, {headers: this.baseHeaders})
     const loginCsrf = this.getFormCsrf(loginResponse.data)
 
     const authResponse = await this.client.post(
@@ -76,15 +81,15 @@ export default class MiterasClient {
       new URLSearchParams({
         _csrf: loginCsrf,
         username: this.username,
-        password: this.password
+        password: this.password,
       }).toString(),
       {
         headers: {
           ...this.baseHeaders,
           Referer: this.loginUrl,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
     )
 
     const authResponseUrl = authResponse.request.res.responseUrl
@@ -100,12 +105,12 @@ export default class MiterasClient {
   // 出社打刻
   public async clockIn(): Promise<this> {
     try {
-      console.log('打刻を実行します。', this.cicoUrl)
-      const cicoResponse = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
+      console.log('出社打刻を実行します。', this.cicoUrl)
+      const cicoResponse = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
       const cicoCsrf = this.getMetaCsrf(cicoResponse.data)
       console.log('取得したCSRFトークン:', cicoCsrf)
       console.log('現在の日付:', this.getCurrentDate())
-      throw new Error('出社打刻中にエラーが発生しました。')
+      throw new Error('dummy')
 
       // // submitClockInにPOST送信（コメントアウトされた部分を利用）
       // const submitResponse = await this.client.post(
@@ -129,7 +134,7 @@ export default class MiterasClient {
       return this
     } catch (error) {
       console.error('出社打刻中にエラーが発生しました:', error)
-      throw new Error('出社打刻中にエラーが発生しました。')
+      throw new Error('ログインに成功しましたが、出社打刻の送信でエラーが発生しました。')
     }
   }
 
