@@ -1,7 +1,7 @@
 import { app, Menu, Tray, shell, Notification } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { initTray } from './iconUtil'
+import {initTray, openEditor} from './util'
 import MiterasClient from './MiterasClient'
 
 let tray: Tray | null = null
@@ -37,11 +37,7 @@ function initializeConfig() {
 
 // 設定ファイルをテキストエディタで開く
 function openConfigFile() {
-  shell.openPath(configFilePath).then((result) => {
-    if (result) {
-      console.error('Failed to open config file:', result)
-    }
-  })
+  openEditor(configFilePath)
 }
 
 // デスクトップ通知のヘルパー関数
