@@ -1,7 +1,7 @@
 import { app, Menu, Tray, shell, Notification } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { getIcon } from './iconUtil'
+import { initTray } from './iconUtil'
 import MiterasClient from './MiterasClient'
 
 let tray: Tray | null = null
@@ -76,8 +76,6 @@ app.whenReady().then(() => {
   initializeConfig()
 
   // タスクバートレイのアイコンとメニュー設定
-  tray = new Tray(getIcon())
-
   const contextMenu = Menu.buildFromTemplate([
     { label: '出社打刻', click: clockIn },
     { label: '退社打刻', click: clockOut },
@@ -87,16 +85,16 @@ app.whenReady().then(() => {
     { label: '終了', role: 'quit' }
   ])
 
-  tray.setToolTip('Mitelecton')
+  tray = initTray()
   tray.setContextMenu(contextMenu)
 
   app.setAppUserModelId('com.electron')
 })
 
 // メインウィンドウを作成しないことで、タスクバーにアイコンが表示されなくなる
-app.on('window-all-closed', (event) => {
-  event.preventDefault() // ウィンドウが閉じられてもアプリが終了しないようにする
-})
+// app.on('window-all-closed', (event) => {
+//   event.preventDefault() // ウィンドウが閉じられてもアプリが終了しないようにする
+// })
 
 
 export { config }
