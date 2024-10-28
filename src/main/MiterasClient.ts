@@ -14,6 +14,10 @@ export default class MiterasClient {
   private cicoUrl: string
   private submitClockInUrl: string
   private submitClockOutUrl: string
+  static CONDITION_BEST = 1
+  static CONDITION_GOOD = 2
+  static CONDITION_NORMAL = 3
+  static CONDITION_BAD = 4
 
   constructor(baseUrl: string, username: string, password: string) {
     this.baseUrl = baseUrl
@@ -105,7 +109,7 @@ export default class MiterasClient {
   }
 
   // 出社打刻
-  public async clockIn(): Promise<this> {
+  public async clockIn(condition: number): Promise<this> {
     console.log('GET', this.cicoUrl)
     const cico = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
     const cicoCsrf = this.getMetaCsrf(cico.data)
@@ -114,7 +118,7 @@ export default class MiterasClient {
     const submit = await this.client.post(
       this.submitClockInUrl,
       {
-        clockInCondition: { condition: 1 },
+        clockInCondition: { condition: condition },
         dailyPlaceEvidence: {},
         workDateString: this.getCurrentDate(),
         enableBreakTime: false
@@ -140,7 +144,7 @@ export default class MiterasClient {
   }
 
   // 退社打刻
-  public async clockOut(): Promise<this> {
+  public async clockOut(condition: number): Promise<this> {
     console.log('GET', this.cicoUrl)
     const cico = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
     const cicoCsrf = this.getMetaCsrf(cico.data)
@@ -150,7 +154,7 @@ export default class MiterasClient {
     const submit = await this.client.post(
       this.submitClockOutUrl,
       {
-        clockOutCondition: { condition: 1 },
+        clockOutCondition: { condition: condition },
         dailyPlaceEvidence: {},
         workDateString: this.getCurrentDate(),
         stampBreakStart: '',
