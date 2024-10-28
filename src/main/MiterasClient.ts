@@ -8,12 +8,13 @@ export default class MiterasClient {
   private username: string
   private password: string
   private client: AxiosInstance
-  private baseHeaders: object
+  private baseHeaders: Record<string, string>
   private loginUrl: string
   private authUrl: string
   private cicoUrl: string
   private submitClockInUrl: string
   private submitClockOutUrl: string
+
   static CONDITION_BEST = 1
   static CONDITION_GOOD = 2
   static CONDITION_NORMAL = 3

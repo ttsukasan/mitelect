@@ -6,7 +6,7 @@ import store from './config'
 let tray: Tray | null = null
 
 // store.getをts-ignoreするためのメソッド 😢
-function storeGet(key): string {
+function storeGet(key: string): string {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   return store.get(key)
