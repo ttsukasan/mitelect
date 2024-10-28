@@ -10,12 +10,9 @@ export default class MiterasClient {
   private client: any
   private baseHeaders: object
   private loginUrl: string
-  // @ts-ignore
   private authUrl: string
   private cicoUrl: string
-  // @ts-ignore
   private submitClockInUrl: string
-  // @ts-ignore
   private submitClockOutUrl: string
 
   constructor(baseUrl: string, username: string, password: string) {
@@ -54,7 +51,7 @@ export default class MiterasClient {
     const $ = cheerio.load(html)
     const csrfToken = $('input[name="_csrf"]').val() as string
     if (!csrfToken) {
-      throw new Error('CSRFトークンが取得できませんでした。')
+      throw new Error(`Failed to retrieve CSRF token in ${this.loginUrl}`)
     }
     return csrfToken
   }
@@ -64,7 +61,7 @@ export default class MiterasClient {
     const $ = cheerio.load(html)
     const csrfToken = $('meta[name="_csrf"]').attr('content')
     if (!csrfToken) {
-      throw new Error('CSRFトークンが取得できませんでした。')
+      throw new Error(`Failed to retrieve CSRF token in ${this.cicoUrl}`)
     }
     return csrfToken
   }
@@ -72,21 +69,18 @@ export default class MiterasClient {
   private getUpdatedDate(html: string): string {
     const $ = cheerio.load(html)
     const updatedDate = $('#daily-attendance').attr('data-updated-date')
-    if (!updatedDate) {
-      throw new Error('updatedDateが取得できませんでした。')
-    }
-    return updatedDate
+    return updatedDate ? updatedDate.toString() : ''
   }
 
   // ログイン処理
   public async login(): Promise<this> {
-    console.log('ログインを実行します。', this.loginUrl)
+    console.log('GET', this.loginUrl)
+    const loginRes = await this.client.get(this.loginUrl, {headers: this.baseHeaders})
+    const loginCsrf = this.getFormCsrf(loginRes.data)
 
-    const loginResponse = await this.client.get(this.loginUrl, {headers: this.baseHeaders})
-    const loginCsrf = this.getFormCsrf(loginResponse.data)
-
-    const authResponse = await this.client.post(
-      `${this.baseUrl}auth`,
+    console.log('POST', this.authUrl)
+    const authRes = await this.client.post(
+      this.authUrl,
       new URLSearchParams({
         _csrf: loginCsrf,
         username: this.username,
@@ -101,11 +95,10 @@ export default class MiterasClient {
       },
     )
 
-    const authResponseUrl = authResponse.request.res.responseUrl
-    if (authResponse.status === 200 && authResponseUrl === this.cicoUrl) {
-      console.log('ログインに成功しました。', authResponse.status, authResponseUrl)
-    } else {
-      console.error('ログインに失敗しました。', authResponse.status, authResponseUrl)
+    console.log('STATUS', authRes.status)
+    const authResponseUrl = authRes.request.res.responseUrl
+    console.log('REDIRECT TO', authResponseUrl)
+    if (authRes.status !== 200 || authResponseUrl !== this.cicoUrl) {
       throw new Error('ログインに失敗しました。')
     }
     return this
@@ -113,74 +106,76 @@ export default class MiterasClient {
 
   // 出社打刻
   public async clockIn(): Promise<this> {
-    try {
-      console.log('出社打刻を実行します。', this.cicoUrl)
-      const cicoResponse = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
-      const cicoCsrf = this.getMetaCsrf(cicoResponse.data)
-      console.log('取得したCSRFトークン:', cicoCsrf)
-      console.log('現在の日付:', this.getCurrentDate())
+    console.log('GET', this.cicoUrl)
+    const cico = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
+    const cicoCsrf = this.getMetaCsrf(cico.data)
 
-      const submitResponse = await this.client.post(
-        this.submitClockInUrl,
-        {
-          clockInCondition: {condition: 1},
-          dailyPlaceEvidence: {},
-          workDateString: this.getCurrentDate(),
-          enableBreakTime: false,
+    console.log('POST', this.submitClockInUrl)
+    const submit = await this.client.post(
+      this.submitClockInUrl,
+      {
+        clockInCondition: {condition: 1},
+        dailyPlaceEvidence: {},
+        workDateString: this.getCurrentDate(),
+        enableBreakTime: false,
+      },
+      {
+        headers: {
+          ...this.baseHeaders,
+          'Referer': this.cicoUrl,
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': cicoCsrf,
         },
-        {
-          headers: {
-            ...this.baseHeaders,
-            'Referer': this.cicoUrl,
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': cicoCsrf,
-          },
-        },
-      )
-      console.log('打刻結果:', submitResponse.data)
-      return this
-    } catch (error) {
-      console.error('出社打刻中にエラーが発生しました:', error)
-      throw new Error('ログインに成功しましたが、出社打刻の送信でエラーが発生しました。')
+      },
+    )
+    console.log('STATUS', submit.status)
+    console.log('RESPONSE', submit.data)
+    if (submit.status !== 200) {
+      throw new Error('送信エラーが発生しました。')
     }
+    if (submit.data?.returnValue !== 'Success') {
+      throw new Error('出社済みや休日でないかご確認ください。')
+    }
+    return this
+
   }
 
   // 退社打刻
   public async clockOut(): Promise<this> {
-    try {
-      console.log('出社打刻を実行します。', this.cicoUrl)
-      const cicoResponse = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
-      const cicoCsrf = this.getMetaCsrf(cicoResponse.data)
-      const updatedDate = this.getUpdatedDate(cicoResponse.data)
+    console.log('GET', this.cicoUrl)
+    const cico = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
+    const cicoCsrf = this.getMetaCsrf(cico.data)
+    const updatedDate = this.getUpdatedDate(cico.data)
 
-      console.log('退社打刻を実行します...')
-      const submitResponse = await this.client.post(
-        this.submitClockOutUrl,
-        {
-          clockOutCondition: {condition: 1},
-          dailyPlaceEvidence: {},
-          workDateString: this.getCurrentDate(),
-          stampBreakStart: '',
-          stampBreakEnd: '',
-          updatedDateString: updatedDate,
+    console.log('POST', this.submitClockOutUrl)
+    const submit = await this.client.post(
+      this.submitClockOutUrl,
+      {
+        clockOutCondition: {condition: 1},
+        dailyPlaceEvidence: {},
+        workDateString: this.getCurrentDate(),
+        stampBreakStart: '',
+        stampBreakEnd: '',
+        updatedDateString: updatedDate,
+      },
+      {
+        headers: {
+          ...this.baseHeaders,
+          'Referer': this.cicoUrl,
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': cicoCsrf,
         },
-        {
-          headers: {
-            ...this.baseHeaders,
-            'Referer': this.cicoUrl,
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': cicoCsrf,
-          },
-        },
-      )
-      console.log('打刻結果:', submitResponse.data)
-      return this
-      // 実際の退社打刻処理をここに実装
-    } catch (error) {
-      console.error('出社打刻中にエラーが発生しました:', error)
-      throw new Error('ログインに成功しましたが、出社打刻の送信でエラーが発生しました。')
+      },
+    )
 
+    console.log('STATUS', submit.status)
+    console.log('RESPONSE', submit.data)
+    if (submit.status !== 200) {
+      throw new Error('送信エラーが発生しました。')
     }
-
+    if (submit.data?.returnValue !== 'Success') {
+      throw new Error('退社済みや休日でないかご確認ください。')
+    }
+    return this
   }
 }

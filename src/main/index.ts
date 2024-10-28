@@ -23,12 +23,12 @@ function showNotification(title: string, body: string) {
 }
 
 function miterasUrl() {
-  return `https://kintai.miteras.jp/${storeGet('miterasCode')}/`
+  return `https://kintai.miteras.jp/${storeGet('companyAlias')}/`
 }
 
 // サイトを開く
 function openBrowser() {
-  const url = `${miterasUrl}/login`
+  const url = `${miterasUrl()}login`
   shell.openExternal(url).catch((error) => {
     console.error('Failed to open URL:', error)
   })
