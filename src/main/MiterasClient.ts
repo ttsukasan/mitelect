@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import * as cheerio from 'cheerio'
 import { wrapper } from 'axios-cookiejar-support'
 import { CookieJar } from 'tough-cookie'
@@ -7,7 +7,7 @@ export default class MiterasClient {
   private baseUrl: string
   private username: string
   private password: string
-  private client: any
+  private client: AxiosInstance
   private baseHeaders: object
   private loginUrl: string
   private authUrl: string

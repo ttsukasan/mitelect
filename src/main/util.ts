@@ -17,7 +17,7 @@ export function initTray(): Tray {
 }
 
 // Windows: Notepadで開く, macOS: TextEditで開く
-export function openEditor(filePath: string) {
+export function openEditor(filePath: string): void {
   if (process.platform === 'win32') {
     exec(`notepad.exe "${filePath}"`, (error) => {
       console.warn('Failed to open config file:', error)

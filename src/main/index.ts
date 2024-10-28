@@ -6,28 +6,30 @@ import store from './config'
 let tray: Tray | null = null
 
 // store.getをts-ignoreするためのメソッド 😢
-function storeGet(key) {
+function storeGet(key): string {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   return store.get(key)
 }
 
 // 設定ファイルをテキストエディタで開く
-function openConfigFile() {
+function openConfigFile(): void {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   openEditor(store.path)
 }
 
 // デスクトップ通知のヘルパー関数
-function showNotification(title: string, body: string) {
+function showNotification(title: string, body: string): void {
   new Notification({ title, body }).show()
 }
 
-function miterasUrl() {
+function miterasUrl(): string {
   return `https://kintai.miteras.jp/${storeGet('companyAlias')}/`
 }
 
 // サイトを開く
-function openBrowser() {
+function openBrowser(): void {
   const url = `${miterasUrl()}login`
   shell.openExternal(url).catch((error) => {
     console.error('Failed to open URL:', error)
@@ -35,7 +37,7 @@ function openBrowser() {
 }
 
 // 出社打刻を実行
-function clockIn() {
+function clockIn(): void {
   const cli = new MiterasClient(miterasUrl(), storeGet('username'), storeGet('password'))
   cli
     .login()
@@ -47,7 +49,7 @@ function clockIn() {
 }
 
 // 退社打刻を実行
-function clockOut() {
+function clockOut(): void {
   const cli = new MiterasClient(miterasUrl(), storeGet('username'), storeGet('password'))
   cli
     .login()
