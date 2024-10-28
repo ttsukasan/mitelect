@@ -1,7 +1,7 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
-import {wrapper} from 'axios-cookiejar-support'
-import {CookieJar} from 'tough-cookie'
+import { wrapper } from 'axios-cookiejar-support'
+import { CookieJar } from 'tough-cookie'
 
 export default class MiterasClient {
   private baseUrl: string
@@ -22,12 +22,12 @@ export default class MiterasClient {
 
     // axiosインスタンスにcookieサポートを追加
     const jar = new CookieJar()
-    this.client = wrapper(axios.create({jar, withCredentials: true}))
+    this.client = wrapper(axios.create({ jar, withCredentials: true }))
 
     this.baseHeaders = {
       'Accept-Language': 'ja',
       'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
     }
 
     this.loginUrl = `${this.baseUrl}login`
@@ -75,7 +75,7 @@ export default class MiterasClient {
   // ログイン処理
   public async login(): Promise<this> {
     console.log('GET', this.loginUrl)
-    const loginRes = await this.client.get(this.loginUrl, {headers: this.baseHeaders})
+    const loginRes = await this.client.get(this.loginUrl, { headers: this.baseHeaders })
     const loginCsrf = this.getFormCsrf(loginRes.data)
 
     console.log('POST', this.authUrl)
@@ -84,15 +84,15 @@ export default class MiterasClient {
       new URLSearchParams({
         _csrf: loginCsrf,
         username: this.username,
-        password: this.password,
+        password: this.password
       }).toString(),
       {
         headers: {
           ...this.baseHeaders,
           Referer: this.loginUrl,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      },
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
     )
 
     console.log('STATUS', authRes.status)
@@ -107,26 +107,26 @@ export default class MiterasClient {
   // 出社打刻
   public async clockIn(): Promise<this> {
     console.log('GET', this.cicoUrl)
-    const cico = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
+    const cico = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
     const cicoCsrf = this.getMetaCsrf(cico.data)
 
     console.log('POST', this.submitClockInUrl)
     const submit = await this.client.post(
       this.submitClockInUrl,
       {
-        clockInCondition: {condition: 1},
+        clockInCondition: { condition: 1 },
         dailyPlaceEvidence: {},
         workDateString: this.getCurrentDate(),
-        enableBreakTime: false,
+        enableBreakTime: false
       },
       {
         headers: {
           ...this.baseHeaders,
-          'Referer': this.cicoUrl,
+          Referer: this.cicoUrl,
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': cicoCsrf,
-        },
-      },
+          'X-CSRF-TOKEN': cicoCsrf
+        }
+      }
     )
     console.log('STATUS', submit.status)
     console.log('RESPONSE', submit.data)
@@ -137,13 +137,12 @@ export default class MiterasClient {
       throw new Error('出社済みや休日でないかご確認ください。')
     }
     return this
-
   }
 
   // 退社打刻
   public async clockOut(): Promise<this> {
     console.log('GET', this.cicoUrl)
-    const cico = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
+    const cico = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
     const cicoCsrf = this.getMetaCsrf(cico.data)
     const updatedDate = this.getUpdatedDate(cico.data)
 
@@ -151,21 +150,21 @@ export default class MiterasClient {
     const submit = await this.client.post(
       this.submitClockOutUrl,
       {
-        clockOutCondition: {condition: 1},
+        clockOutCondition: { condition: 1 },
         dailyPlaceEvidence: {},
         workDateString: this.getCurrentDate(),
         stampBreakStart: '',
         stampBreakEnd: '',
-        updatedDateString: updatedDate,
+        updatedDateString: updatedDate
       },
       {
         headers: {
           ...this.baseHeaders,
-          'Referer': this.cicoUrl,
+          Referer: this.cicoUrl,
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': cicoCsrf,
-        },
-      },
+          'X-CSRF-TOKEN': cicoCsrf
+        }
+      }
     )
 
     console.log('STATUS', submit.status)

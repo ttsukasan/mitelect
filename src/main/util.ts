@@ -1,13 +1,14 @@
-import {Tray, app, shell} from 'electron'
+import { Tray, app, shell } from 'electron'
 import path from 'path'
 import { exec } from 'child_process'
 
 // システムトレーの初期設定、アイコン設定
 export function initTray(): Tray {
-  const fileName = {
-    darwin: 'beeTemplate.png',
-    win32: 'bee.ico',
-  }[process.platform] || 'bee_16.png'
+  const fileName =
+    {
+      darwin: 'beeTemplate.png',
+      win32: 'bee.ico'
+    }[process.platform] || 'bee_16.png'
 
   const iconPath = path.join(app.getAppPath(), 'resources', fileName)
   const tray = new Tray(iconPath)
