@@ -12,7 +12,7 @@ export function initTray(): Tray {
 
   const iconPath = path.join(app.getAppPath(), 'resources', fileName)
   const tray = new Tray(iconPath)
-  tray.setToolTip('みてらー')
+  // tray.setToolTip('アプリ名')
   return tray
 }
 
