@@ -39,13 +39,17 @@ function clockIn() {
   const cli = new MiterasClient(miterasUrl(), storeGet('username'), storeGet('password'))
   cli.login().then(() => cli.clockIn().then()).catch((error) => {
     console.error(error)
-    showNotification('出社打刻が失敗しました。', error.message)
+    showNotification('出社打刻に失敗しました。', error.message)
   })
 }
 
 // 退社打刻を実行
 function clockOut() {
-  console.log('clockOut')
+  const cli = new MiterasClient(miterasUrl(), storeGet('username'), storeGet('password'))
+  cli.login().then(() => cli.clockOut().then()).catch((error) => {
+    console.error(error)
+    showNotification('退社打刻に失敗しました。', error.message)
+  })
 }
 
 app.whenReady().then(() => {

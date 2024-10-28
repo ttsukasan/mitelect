@@ -50,8 +50,8 @@ export default class MiterasClient {
   }
 
   // CSRFトークンを取得 (ログインフォームはformから取得)
-  private getFormCsrf(axiosResponseData: any): string {
-    const $ = cheerio.load(axiosResponseData)
+  private getFormCsrf(html: string): string {
+    const $ = cheerio.load(html)
     const csrfToken = $('input[name="_csrf"]').val() as string
     if (!csrfToken) {
       throw new Error('CSRFトークンが取得できませんでした。')
@@ -60,13 +60,22 @@ export default class MiterasClient {
   }
 
   // CSRFトークンを取得 (打刻ページはmetaタグから取得)
-  private getMetaCsrf(axiosResponseData: any): string {
-    const $ = cheerio.load(axiosResponseData)
+  private getMetaCsrf(html: string): string {
+    const $ = cheerio.load(html)
     const csrfToken = $('meta[name="_csrf"]').attr('content')
     if (!csrfToken) {
       throw new Error('CSRFトークンが取得できませんでした。')
     }
     return csrfToken
+  }
+
+  private getUpdatedDate(html: string): string {
+    const $ = cheerio.load(html)
+    const updatedDate = $('#daily-attendance').attr('data-updated-date')
+    if (!updatedDate) {
+      throw new Error('updatedDateが取得できませんでした。')
+    }
+    return updatedDate
   }
 
   // ログイン処理
@@ -110,27 +119,25 @@ export default class MiterasClient {
       const cicoCsrf = this.getMetaCsrf(cicoResponse.data)
       console.log('取得したCSRFトークン:', cicoCsrf)
       console.log('現在の日付:', this.getCurrentDate())
-      throw new Error('dummy')
 
-      // // submitClockInにPOST送信（コメントアウトされた部分を利用）
-      // const submitResponse = await this.client.post(
-      //   `${this.baseUrl}submitClockIn`,
-      //   new URLSearchParams({
-      //     clock_in_condition: "best",
-      //     daily_place_evidence: "",
-      //     work_date_string: this.getCurrentDate(),
-      //     enable_break_time: "false",
-      //   }).toString(),
-      //   {
-      //     headers: {
-      //       ...this.baseHeaders,
-      //       'Referer': `${this.baseUrl}cico`,
-      //       'Content-Type': 'application/x-www-form-urlencoded',
-      //       'X-CSRF-TOKEN': cicoCsrf
-      //     }
-      //   }
-      // )
-      // console.log('打刻結果:', submitResponse.data)
+      const submitResponse = await this.client.post(
+        this.submitClockInUrl,
+        new URLSearchParams({
+          clock_in_condition: '1',
+          daily_place_evidence: JSON.stringify({}),
+          work_date_string: this.getCurrentDate(),
+          enable_break_time: 'false',
+        }).toString(),
+        {
+          headers: {
+            ...this.baseHeaders,
+            'Referer': this.cicoUrl,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': cicoCsrf,
+          },
+        },
+      )
+      console.log('打刻結果:', submitResponse.data)
       return this
     } catch (error) {
       console.error('出社打刻中にエラーが発生しました:', error)
@@ -139,8 +146,41 @@ export default class MiterasClient {
   }
 
   // 退社打刻
-  public clockOut(): void {
-    console.log('退社打刻を実行します...')
-    // 実際の退社打刻処理をここに実装
+  public async clockOut(): Promise<this> {
+    try {
+      console.log('出社打刻を実行します。', this.cicoUrl)
+      const cicoResponse = await this.client.get(this.cicoUrl, {headers: this.baseHeaders})
+      const cicoCsrf = this.getMetaCsrf(cicoResponse.data)
+      const updatedDate = this.getUpdatedDate(cicoResponse.data)
+
+      console.log('退社打刻を実行します...')
+      const submitResponse = await this.client.post(
+        this.submitClockOutUrl,
+        {
+          clockOutCondition: {condition: 1},
+          dailyPlaceEvidence: {},
+          workDateString: this.getCurrentDate(),
+          stampBreakStart: '',
+          stampBreakEnd: '',
+          updatedDateString: updatedDate,
+        },
+        {
+          headers: {
+            ...this.baseHeaders,
+            'Referer': this.cicoUrl,
+            'Content-Type': 'application/json', // JSON形式で送信
+            'X-CSRF-TOKEN': cicoCsrf,
+          },
+        },
+      )
+      console.log('打刻結果:', submitResponse.data)
+      return this
+      // 実際の退社打刻処理をここに実装
+    } catch (error) {
+      console.error('出社打刻中にエラーが発生しました:', error)
+      throw new Error('ログインに成功しましたが、出社打刻の送信でエラーが発生しました。')
+
+    }
+
   }
 }
