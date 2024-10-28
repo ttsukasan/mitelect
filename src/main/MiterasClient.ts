@@ -122,17 +122,17 @@ export default class MiterasClient {
 
       const submitResponse = await this.client.post(
         this.submitClockInUrl,
-        new URLSearchParams({
-          clock_in_condition: '1',
-          daily_place_evidence: JSON.stringify({}),
-          work_date_string: this.getCurrentDate(),
-          enable_break_time: 'false',
-        }).toString(),
+        {
+          clockInCondition: {condition: 1},
+          dailyPlaceEvidence: {},
+          workDateString: this.getCurrentDate(),
+          enableBreakTime: false,
+        },
         {
           headers: {
             ...this.baseHeaders,
             'Referer': this.cicoUrl,
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': cicoCsrf,
           },
         },
@@ -168,7 +168,7 @@ export default class MiterasClient {
           headers: {
             ...this.baseHeaders,
             'Referer': this.cicoUrl,
-            'Content-Type': 'application/json', // JSON形式で送信
+            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': cicoCsrf,
           },
         },
