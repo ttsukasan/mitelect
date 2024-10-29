@@ -7,6 +7,7 @@ let tray: Tray | null = null
 
 // 設定ファイルをテキストエディタで開く
 function openConfigFile(): void {
+  // @ts-ignore: storeのメソッド呼び出しで警告される。electron-store type を入れるとビルドエラーなる
   openEditor(store.path)
 }
 

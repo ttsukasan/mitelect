@@ -36,6 +36,7 @@ export default class MiterasClient {
   }
 
   private miterasUrl(): string {
+    // @ts-ignore: storeのメソッド呼び出しで警告される。electron-store type を入れるとビルドエラーなる
     return `https://kintai.miteras.jp/${store.get('companyAlias')}/`
   }
 
@@ -96,7 +97,9 @@ export default class MiterasClient {
       this.authUrl,
       new URLSearchParams({
         _csrf: csrf,
+        // @ts-ignore: storeのメソッド呼び出しで警告される
         username: store.get('username'),
+        // @ts-ignore: storeのメソッド呼び出しで警告される
         password: store.get('password')
       }).toString(),
       {
