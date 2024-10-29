@@ -7,8 +7,6 @@ let tray: Tray | null = null
 
 // 設定ファイルをテキストエディタで開く
 function openConfigFile(): void {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   openEditor(store.path)
 }
 
@@ -31,7 +29,7 @@ function clockIn(condition: number): void {
   cli
     .initCookie()
     .login()
-    .then(() => cli.clockIn(condition).then())
+    .then(() => cli.clockIn(condition))
     .catch((error) => {
       console.error(error)
       showNotification('出社打刻に失敗しました。', error.message)
@@ -44,7 +42,7 @@ function clockOut(condition: number): void {
   cli
     .initCookie()
     .login()
-    .then(() => cli.clockOut(condition).then())
+    .then(() => cli.clockOut(condition))
     .catch((error) => {
       console.error(error)
       showNotification('退社打刻に失敗しました。', error.message)
