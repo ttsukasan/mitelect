@@ -64,7 +64,7 @@ export default class MiterasClient {
   }
 
   // 打刻ページのcsrfトークン、更新日時を取得
-  private async getCicoPageParams(): Promise<object> {
+  private async getCicoPageParams(): Promise<{ csrf: string; updatedDate: string }> {
     const response = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
     console.log('GET', this.cicoUrl, 'STATUS', response.status)
 
