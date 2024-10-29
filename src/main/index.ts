@@ -5,13 +5,6 @@ import store from './config'
 
 let tray: Tray | null = null
 
-// store.getをts-ignoreするためのメソッド 😢
-function storeGet(key: string): string {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return store.get(key)
-}
-
 // 設定ファイルをテキストエディタで開く
 function openConfigFile(): void {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -24,13 +17,9 @@ function showNotification(title: string, body: string): void {
   new Notification({ title, body }).show()
 }
 
-function miterasUrl(): string {
-  return `https://kintai.miteras.jp/${storeGet('companyAlias')}/`
-}
-
 // サイトを開く
 function openBrowser(): void {
-  const url = `${miterasUrl()}login`
+  const url = new MiterasClient().loginUrl
   shell.openExternal(url).catch((error) => {
     console.error('Failed to open URL:', error)
   })
@@ -38,8 +27,9 @@ function openBrowser(): void {
 
 // 出社打刻を実行
 function clockIn(condition: number): void {
-  const cli = new MiterasClient(miterasUrl(), storeGet('username'), storeGet('password'))
+  const cli = new MiterasClient()
   cli
+    .initCookie()
     .login()
     .then(() => cli.clockIn(condition).then())
     .catch((error) => {
@@ -50,8 +40,9 @@ function clockIn(condition: number): void {
 
 // 退社打刻を実行
 function clockOut(condition: number): void {
-  const cli = new MiterasClient(miterasUrl(), storeGet('username'), storeGet('password'))
+  const cli = new MiterasClient()
   cli
+    .initCookie()
     .login()
     .then(() => cli.clockOut(condition).then())
     .catch((error) => {
@@ -63,15 +54,15 @@ function clockOut(condition: number): void {
 app.whenReady().then(() => {
   // タスクバートレイのアイコンとメニュー設定
   const contextMenu = Menu.buildFromTemplate([
-    { label: '出社打刻(Best)', click: (): void => clockIn(MiterasClient.CONDITION_BEST) },
-    { label: '出社打刻(Good)', click: (): void => clockIn(MiterasClient.CONDITION_GOOD) },
-    { label: '出社打刻(Normal)', click: (): void => clockIn(MiterasClient.CONDITION_NORMAL) },
-    { label: '出社打刻(Bad)', click: (): void => clockIn(MiterasClient.CONDITION_BAD) },
+    { label: '出社打刻(Best)', click: (): void => clockIn(MiterasClient.CONDITION.BEST) },
+    { label: '出社打刻(Good)', click: (): void => clockIn(MiterasClient.CONDITION.GOOD) },
+    { label: '出社打刻(Normal)', click: (): void => clockIn(MiterasClient.CONDITION.NORMAL) },
+    { label: '出社打刻(Bad)', click: (): void => clockIn(MiterasClient.CONDITION.BAD) },
     { type: 'separator' },
-    { label: '退社打刻(Best)', click: (): void => clockOut(MiterasClient.CONDITION_BEST) },
-    { label: '退社打刻(Good)', click: (): void => clockOut(MiterasClient.CONDITION_GOOD) },
-    { label: '退社打刻(Normal)', click: (): void => clockOut(MiterasClient.CONDITION_NORMAL) },
-    { label: '退社打刻(Bad)', click: (): void => clockOut(MiterasClient.CONDITION_BAD) },
+    { label: '退社打刻(Best)', click: (): void => clockOut(MiterasClient.CONDITION.BEST) },
+    { label: '退社打刻(Good)', click: (): void => clockOut(MiterasClient.CONDITION.GOOD) },
+    { label: '退社打刻(Normal)', click: (): void => clockOut(MiterasClient.CONDITION.NORMAL) },
+    { label: '退社打刻(Bad)', click: (): void => clockOut(MiterasClient.CONDITION.BAD) },
     { type: 'separator' },
     { label: 'Miterasを開く', click: openBrowser },
     { label: '環境設定', click: openConfigFile },
