@@ -45,10 +45,7 @@ export default class MiterasClient {
   // 現在の日付を yyyy-mm-dd 形式で取得
   private getCurrentDate(): string {
     const date = new Date()
-    const year = date.getFullYear()
-    const month = ('0' + (date.getMonth() + 1)).slice(-2)
-    const day = ('0' + date.getDate()).slice(-2)
-    return `${year}-${month}-${day}`
+    return date.toISOString().split('T')[0]
   }
 
   // CSRFトークンを取得 (ログインフォームはformから取得)
@@ -81,6 +78,12 @@ export default class MiterasClient {
   public async login(): Promise<this> {
     console.log('GET', this.loginUrl)
     const loginRes = await this.client.get(this.loginUrl, { headers: this.baseHeaders })
+    console.log('STATUS', loginRes.status)
+    console.log('STATUS', loginRes)
+    const $ = cheerio.load(loginRes.data)
+    if (loginRes.status !== 200 || $('form#login_form').length !== 1) {
+      throw new Error(`ログインページへのアクセスに失敗しました。 ${this.loginUrl}`)
+    }
     const loginCsrf = this.getFormCsrf(loginRes.data)
 
     console.log('POST', this.authUrl)
@@ -113,6 +116,7 @@ export default class MiterasClient {
   public async clockIn(condition: number): Promise<this> {
     console.log('GET', this.cicoUrl)
     const cico = await this.client.get(this.cicoUrl, { headers: this.baseHeaders })
+    //
     const cicoCsrf = this.getMetaCsrf(cico.data)
 
     console.log('POST', this.submitClockInUrl)
