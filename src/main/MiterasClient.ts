@@ -2,7 +2,8 @@ import axios, { AxiosInstance } from 'axios'
 import * as cheerio from 'cheerio'
 import { wrapper } from 'axios-cookiejar-support'
 import { CookieJar } from 'tough-cookie'
-import store from './config'
+// import store from './config'
+// import getStore from './config'
 
 export default class MiterasClient {
   private client: AxiosInstance
@@ -13,6 +14,10 @@ export default class MiterasClient {
   private readonly submitClockOutUrl: string
   private readonly baseHeaders: Record<string, string>
 
+  // @ts-ignore: ignore
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private store: ElectronStore<any>
+
   static CONDITION = {
     BEST: 1,
     GOOD: 2,
@@ -20,7 +25,8 @@ export default class MiterasClient {
     BAD: 4
   }
 
-  constructor() {
+  constructor(store) {
+    this.store = store
     this.baseHeaders = {
       'Accept-Language': 'ja',
       'User-Agent':
