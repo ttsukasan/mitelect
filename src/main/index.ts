@@ -1,6 +1,7 @@
 import { app, Menu, Tray, shell, Notification } from 'electron'
 import { initTray, openEditor } from './util'
 import MiterasClient from './MiterasClient'
+import ElectronStore from 'electron-store'
 import store from './config'
 
 let tray: Tray | null = null
@@ -49,6 +50,7 @@ async function clockOut(condition: number): Promise<void> {
 }
 
 app.whenReady().then(() => {
+  console.log(ElectronStore)
   // タスクバートレイのアイコンとメニュー設定
   const contextMenu = Menu.buildFromTemplate([
     { label: '出社打刻(Best)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BEST) },
