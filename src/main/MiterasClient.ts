@@ -35,15 +35,8 @@ export default class MiterasClient {
     this.client = axios.create() // fixme: 不要な初期化
   }
 
-  // store.getをts-ignoreするためのメソッド 😢
-  private storeGet(key: string): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return store.get(key)
-  }
-
   private miterasUrl(): string {
-    return `https://kintai.miteras.jp/${this.storeGet('companyAlias')}/`
+    return `https://kintai.miteras.jp/${store.get('companyAlias')}/`
   }
 
   // 現在の日付を yyyy-mm-dd 形式で取得
@@ -98,14 +91,14 @@ export default class MiterasClient {
   }
 
   // ログイン処理
-  public async login(): Promise<this> {
+  public async login(): Promise<void> {
     const csrf = await this.getLoginPageCsrf()
     const response = await this.client.post(
       this.authUrl,
       new URLSearchParams({
         _csrf: csrf,
-        username: this.storeGet('username'),
-        password: this.storeGet('password')
+        username: store.get('username'),
+        password: store.get('password')
       }).toString(),
       {
         headers: {
@@ -119,11 +112,11 @@ export default class MiterasClient {
     if (response.status !== 200 || response.request.res.responseUrl !== this.cicoUrl) {
       throw new Error('ログインに失敗しました。')
     }
-    return this
+    // return this
   }
 
   // 出社打刻
-  public async clockIn(condition: number): Promise<this> {
+  public async clockIn(condition: number): Promise<void> {
     const params = await this.getCicoPageParams()
     const response = await this.client.post(
       this.submitClockInUrl,
@@ -150,11 +143,10 @@ export default class MiterasClient {
     if (response.data?.returnValue !== 'Success') {
       throw new Error('出社済みや休日でないかご確認ください。')
     }
-    return this
   }
 
   // 退社打刻
-  public async clockOut(condition: number): Promise<this> {
+  public async clockOut(condition: number): Promise<void> {
     const params = await this.getCicoPageParams()
 
     const response = await this.client.post(
@@ -187,6 +179,5 @@ export default class MiterasClient {
     if (response.data?.warnmessage) {
       throw new Error(response.data.warnmessage)
     }
-    return this
   }
 }
