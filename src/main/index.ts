@@ -24,43 +24,41 @@ function openBrowser(): void {
 }
 
 // 出社打刻を実行
-function clockIn(condition: number): void {
+async function clockIn(condition: number): Promise<void> {
   const cli = new MiterasClient()
-  cli
-    .initCookie()
-    .login()
-    .then(() => cli.clockIn(condition))
-    .catch((error) => {
-      console.error(error)
-      showNotification('出社打刻に失敗しました。', error.message)
-    })
+  try {
+    await cli.initCookie().login()
+    await cli.clockIn(condition)
+  } catch (error) {
+    console.error(error)
+    showNotification('出社打刻に失敗しました。', String(error))
+  }
 }
 
 // 退社打刻を実行
-function clockOut(condition: number): void {
+async function clockOut(condition: number): Promise<void> {
   const cli = new MiterasClient()
-  cli
-    .initCookie()
-    .login()
-    .then(() => cli.clockOut(condition))
-    .catch((error) => {
-      console.error(error)
-      showNotification('退社打刻に失敗しました。', error.message)
-    })
+  try {
+    await cli.initCookie().login()
+    await cli.clockOut(condition)
+  } catch (error) {
+    console.error(error)
+    showNotification('退社打刻に失敗しました。', String(error))
+  }
 }
 
 app.whenReady().then(() => {
   // タスクバートレイのアイコンとメニュー設定
   const contextMenu = Menu.buildFromTemplate([
-    { label: '出社打刻(Best)', click: (): void => clockIn(MiterasClient.CONDITION.BEST) },
-    { label: '出社打刻(Good)', click: (): void => clockIn(MiterasClient.CONDITION.GOOD) },
-    { label: '出社打刻(Normal)', click: (): void => clockIn(MiterasClient.CONDITION.NORMAL) },
-    { label: '出社打刻(Bad)', click: (): void => clockIn(MiterasClient.CONDITION.BAD) },
+    { label: '出社打刻(Best)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BEST) },
+    { label: '出社打刻(Good)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.GOOD) },
+    { label: '出社打刻(Normal)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.NORMAL) },
+    { label: '出社打刻(Bad)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BAD) },
     { type: 'separator' },
-    { label: '退社打刻(Best)', click: (): void => clockOut(MiterasClient.CONDITION.BEST) },
-    { label: '退社打刻(Good)', click: (): void => clockOut(MiterasClient.CONDITION.GOOD) },
-    { label: '退社打刻(Normal)', click: (): void => clockOut(MiterasClient.CONDITION.NORMAL) },
-    { label: '退社打刻(Bad)', click: (): void => clockOut(MiterasClient.CONDITION.BAD) },
+    { label: '退社打刻(Best)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.BEST) },
+    { label: '退社打刻(Good)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.GOOD) },
+    { label: '退社打刻(Normal)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.NORMAL) },
+    { label: '退社打刻(Bad)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.BAD) },
     { type: 'separator' },
     { label: 'Miterasを開く', click: openBrowser },
     { label: '環境設定', click: openConfigFile },

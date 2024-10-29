@@ -6,12 +6,12 @@ import store from './config'
 
 export default class MiterasClient {
   private client: AxiosInstance
-  private baseHeaders: Record<string, string>
-  loginUrl: string
-  private authUrl: string
-  private cicoUrl: string
-  private submitClockInUrl: string
-  private submitClockOutUrl: string
+  readonly loginUrl: string
+  private readonly authUrl: string
+  private readonly cicoUrl: string
+  private readonly submitClockInUrl: string
+  private readonly submitClockOutUrl: string
+  private readonly baseHeaders: Record<string, string>
 
   static CONDITION = {
     BEST: 1,
@@ -86,7 +86,6 @@ export default class MiterasClient {
     // axiosインスタンスにcookieサポートを追加
     const jar = new CookieJar()
     this.client = wrapper(axios.create({ jar, withCredentials: true }))
-
     return this
   }
 
@@ -112,7 +111,6 @@ export default class MiterasClient {
     if (response.status !== 200 || response.request.res.responseUrl !== this.cicoUrl) {
       throw new Error('ログインに失敗しました。')
     }
-    // return this
   }
 
   // 出社打刻
