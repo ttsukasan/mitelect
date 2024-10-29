@@ -12,6 +12,7 @@ const store = new Store<ConfigSchema>({
     username: 'your.name',
     password: 'Passw0rd'
   },
+  // @ts-ignore: なぜか"schema"が警告される
   schema: {
     companyAlias: {
       type: 'string'
