@@ -19,9 +19,8 @@ function showNotification(title: string, body: string): void {
     message: body,
     icon: getLargeIconPath(),
     sound: true,
-    wait: true
-  },  function (err, response, metadata) {
-    console.error("通知に失敗しました", err, response, metadata)
+    wait: true,
+    appID: 'MiteTray'
   })
 }
 
