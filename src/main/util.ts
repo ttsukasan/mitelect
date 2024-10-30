@@ -2,16 +2,23 @@ import { Tray, app, shell } from 'electron'
 import path from 'path'
 import { exec } from 'child_process'
 
-// システムトレーの初期設定、アイコン設定
-export function initTray(): Tray {
+function getTrayIconPath(): string {
   const fileName =
     {
       darwin: 'beeTemplate.png',
       win32: 'bee.ico'
     }[process.platform] || 'bee_16.png'
 
-  const iconPath = path.join(app.getAppPath(), 'resources', fileName)
-  const tray = new Tray(iconPath)
+  return path.join(app.getAppPath(), 'resources', fileName)
+}
+
+export function getLargeIconPath(): string {
+  return path.join(app.getAppPath(), 'resources', 'icon.png')
+}
+
+// システムトレーの初期設定、アイコン設定
+export function initTray(): Tray {
+  const tray = new Tray(getTrayIconPath())
   // tray.setToolTip('アプリ名')
   return tray
 }

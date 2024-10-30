@@ -1,7 +1,8 @@
-import { app, Menu, Tray, shell, Notification } from 'electron'
-import { initTray, openEditor } from './util'
-import MiterasClient from './MiterasClient'
+import { app, Menu, Tray, shell } from 'electron'
+import notifier from 'node-notifier'
 import store from './config'
+import { getLargeIconPath, initTray, openEditor } from './util'
+import MiterasClient from './MiterasClient'
 
 let tray: Tray | null = null
 
@@ -13,7 +14,15 @@ async function openConfigFile(): Promise<void> {
 
 // デスクトップ通知のヘルパー関数
 function showNotification(title: string, body: string): void {
-  new Notification({ title, body }).show()
+  notifier.notify({
+    title: title,
+    message: body,
+    icon: getLargeIconPath(),
+    sound: true,
+    wait: true
+  },  function (err, response, metadata) {
+    console.error("通知に失敗しました", err, response, metadata)
+  })
 }
 
 // サイトを開く
@@ -32,7 +41,8 @@ async function clockIn(condition: number): Promise<void> {
     await cli.clockIn(condition)
   } catch (error) {
     console.error(error)
-    showNotification('出社打刻に失敗しました。', String(error))
+    // @ts-ignore un-match error object
+    showNotification('出社打刻に失敗しました。', error.message)
   }
 }
 
@@ -44,7 +54,8 @@ async function clockOut(condition: number): Promise<void> {
     await cli.clockOut(condition)
   } catch (error) {
     console.error(error)
-    showNotification('退社打刻に失敗しました。', String(error))
+    // @ts-ignore un-match error object
+    showNotification('退社打刻に失敗しました。', error.message)
   }
 }
 
