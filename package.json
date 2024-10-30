@@ -2,6 +2,7 @@
   "name": "mitelecton",
   "version": "1.0.0",
   "description": "システムトレーに常駐するMiterasクライアント",
+  "type": "module",
   "main": "./out/main/index.js",
   "author": "ttsukasan",
   "homepage": "https://github.com/ttsukasan/mitelecton",
