@@ -38,6 +38,7 @@ async function clockIn(condition: number): Promise<void> {
   try {
     await cli.initCookie().login()
     await cli.clockIn(condition)
+    showNotification('Check in!', '出社しました。')
   } catch (error) {
     console.error(error)
     // @ts-ignore un-match error object
@@ -51,6 +52,7 @@ async function clockOut(condition: number): Promise<void> {
   try {
     await cli.initCookie().login()
     await cli.clockOut(condition)
+    showNotification('Check out!', '退社しました。')
   } catch (error) {
     console.error(error)
     // @ts-ignore un-match error object
@@ -77,6 +79,11 @@ app.whenReady().then(() => {
   ])
 
   tray = initTray()
+  // 左クリック時にコンテキストメニューを表示
+  tray.on('click', () => {
+    tray?.popUpContextMenu(contextMenu)
+  })
+  // 右クリック
   tray.setContextMenu(contextMenu)
 
   if (!app.getLoginItemSettings().openAtLogin) app.setLoginItemSettings({ openAtLogin: true })
