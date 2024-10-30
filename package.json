@@ -1,7 +1,7 @@
 {
   "name": "mitelecton",
-  "version": "1.0.0",
-  "description": "システムトレーに常駐するMiterasクライアント",
+  "version": "1.0.1",
+  "description": "システムトレーに常駐するMiterasクライアントです。",
   "type": "module",
   "main": "./out/main/index.js",
   "author": "ttsukasan",
