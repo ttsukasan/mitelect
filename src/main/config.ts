@@ -7,12 +7,12 @@ interface ConfigSchema {
 }
 
 const store = new Store<ConfigSchema>({
+  serialize: (value) => JSON.stringify(value, null, '  '),
   defaults: {
     companyAlias: 'A123456',
     username: 'your.name',
     password: 'Passw0rd'
   },
-  // @ts-ignore: なぜか"schema"が警告される
   schema: {
     companyAlias: {
       type: 'string'
