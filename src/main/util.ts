@@ -16,15 +16,10 @@ export function initTray(): Tray {
   return tray
 }
 
-// Windows: Notepadで開く, macOS: TextEditで開く
+// Windows: Notepadで開く, macOS: 標準のエディタで開く
 export function openEditor(filePath: string): void {
   if (process.platform === 'win32') {
     exec(`notepad.exe "${filePath}"`, (error) => {
-      console.warn('Failed to open config file:', error)
-      shell.openPath(filePath)
-    })
-  } else if (process.platform === 'darwin') {
-    exec(`open -a TextEdit "${filePath}"`, (error) => {
       console.warn('Failed to open config file:', error)
       shell.openPath(filePath)
     })

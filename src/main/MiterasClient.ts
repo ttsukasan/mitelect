@@ -2,8 +2,7 @@ import axios, { AxiosInstance } from 'axios'
 import * as cheerio from 'cheerio'
 import { wrapper } from 'axios-cookiejar-support'
 import { CookieJar } from 'tough-cookie'
-// import store from './config'
-// import getStore from './config'
+import store from './config'
 
 export default class MiterasClient {
   private client: AxiosInstance
@@ -25,8 +24,7 @@ export default class MiterasClient {
     BAD: 4
   }
 
-  constructor(store) {
-    this.store = store
+  constructor() {
     this.baseHeaders = {
       'Accept-Language': 'ja',
       'User-Agent':

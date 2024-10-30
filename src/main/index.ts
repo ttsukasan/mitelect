@@ -1,16 +1,14 @@
 import { app, Menu, Tray, shell, Notification } from 'electron'
 import { initTray, openEditor } from './util'
 import MiterasClient from './MiterasClient'
-// import ElectronStore from 'electron-store'
-// import store from './config'
-import getStore from './config'
+import store from './config'
 
 let tray: Tray | null = null
 
 // 設定ファイルをテキストエディタで開く
 async function openConfigFile(): Promise<void> {
   // @ts-ignore: storeのメソッド呼び出しで警告される。electron-store type を入れるとビルドエラーなる
-  openEditor(await getStore().path)
+  openEditor(store.path)
 }
 
 // デスクトップ通知のヘルパー関数
@@ -20,7 +18,7 @@ function showNotification(title: string, body: string): void {
 
 // サイトを開く
 async function openBrowser(): Promise<void> {
-  const url = new MiterasClient(await getStore()).loginUrl
+  const url = new MiterasClient().loginUrl
   shell.openExternal(url).catch((error) => {
     console.error('Failed to open URL:', error)
   })
@@ -28,7 +26,7 @@ async function openBrowser(): Promise<void> {
 
 // 出社打刻を実行
 async function clockIn(condition: number): Promise<void> {
-  const cli = new MiterasClient(await getStore())
+  const cli = new MiterasClient()
   try {
     await cli.initCookie().login()
     await cli.clockIn(condition)
@@ -40,7 +38,7 @@ async function clockIn(condition: number): Promise<void> {
 
 // 退社打刻を実行
 async function clockOut(condition: number): Promise<void> {
-  const cli = new MiterasClient(await getStore())
+  const cli = new MiterasClient()
   try {
     await cli.initCookie().login()
     await cli.clockOut(condition)
@@ -49,8 +47,6 @@ async function clockOut(condition: number): Promise<void> {
     showNotification('退社打刻に失敗しました。', String(error))
   }
 }
-
-// const store = await getStore()
 
 app.whenReady().then(() => {
   // タスクバートレイのアイコンとメニュー設定
