@@ -1,7 +1,7 @@
 import { app, Menu, Tray, shell } from 'electron'
 import notifier from 'node-notifier'
 import store from './config'
-import { getLargeIconPath, initTray, openEditor } from './util'
+import { getLargeIconPath, initTray, openEditor } from './appHelper'
 import MiterasClient from './MiterasClient'
 
 let tray: Tray | null = null
