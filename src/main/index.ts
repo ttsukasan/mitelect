@@ -69,32 +69,39 @@ async function clockOut(condition: number): Promise<void> {
   }
 }
 
-app.whenReady().then(() => {
-  // タスクバートレイのアイコンとメニュー設定
-  const contextMenu = Menu.buildFromTemplate([
-    { label: '出社打刻(Best)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BEST) },
-    { label: '出社打刻(Good)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.GOOD) },
-    { label: '出社打刻(Normal)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.NORMAL) },
-    { label: '出社打刻(Bad)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BAD) },
-    { type: 'separator' },
-    { label: '退社打刻(Best)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.BEST) },
-    { label: '退社打刻(Good)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.GOOD) },
-    { label: '退社打刻(Normal)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.NORMAL) },
-    { label: '退社打刻(Bad)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.BAD) },
-    { type: 'separator' },
-    { label: 'Miterasを開く', click: openBrowser },
-    { label: '環境設定', click: openConfigFile },
-    { label: '終了', role: 'quit' }
-  ])
+// 二重起動の防止
+const gotTheLock = app.requestSingleInstanceLock()
 
-  tray = initTray()
-  // 左クリック時にコンテキストメニューを表示
-  tray.on('click', () => {
-    tray?.popUpContextMenu(contextMenu)
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.whenReady().then(() => {
+    // タスクバートレイのアイコンとメニュー設定
+    const contextMenu = Menu.buildFromTemplate([
+      { label: '出社打刻(Best)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BEST) },
+      { label: '出社打刻(Good)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.GOOD) },
+      { label: '出社打刻(Normal)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.NORMAL) },
+      { label: '出社打刻(Bad)', click: (): Promise<void> => clockIn(MiterasClient.CONDITION.BAD) },
+      { type: 'separator' },
+      { label: '退社打刻(Best)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.BEST) },
+      { label: '退社打刻(Good)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.GOOD) },
+      { label: '退社打刻(Normal)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.NORMAL) },
+      { label: '退社打刻(Bad)', click: (): Promise<void> => clockOut(MiterasClient.CONDITION.BAD) },
+      { type: 'separator' },
+      { label: 'Miterasを開く', click: openBrowser },
+      { label: '環境設定', click: openConfigFile },
+      { label: '終了', role: 'quit' }
+    ])
+
+    tray = initTray()
+    // 左クリック時にコンテキストメニューを表示
+    tray.on('click', () => {
+      tray?.popUpContextMenu(contextMenu)
+    })
+    // 右クリック
+    tray.setContextMenu(contextMenu)
+
+    if (!app.getLoginItemSettings().openAtLogin) app.setLoginItemSettings({ openAtLogin: true })
+    app.setAppUserModelId('com.electron')
   })
-  // 右クリック
-  tray.setContextMenu(contextMenu)
-
-  if (!app.getLoginItemSettings().openAtLogin) app.setLoginItemSettings({ openAtLogin: true })
-  app.setAppUserModelId('com.electron')
-})
+}
