@@ -1,4 +1,4 @@
-# MiteTray 1.0.3
+# MiteTray 1.0.4
 
 システムトレーに常駐するMiterasのクライアントです。
 
@@ -27,7 +27,7 @@
 
 ```shell
 # リポジトリをクローンします
-git clone --branch 1.0.3 git@github.com:ttsukasan/mitelecton.git
+git clone --branch 1.0.4 git@github.com:ttsukasan/mitelecton.git
 cd mitelecton
 
 # パッケージインストールします
@@ -37,7 +37,7 @@ npm install
 npm run build:mac
 
 # アプリを実行します
-open dist/MiteTray-1.0.3.dmg
+open dist/MiteTray-1.0.4.dmg
 ```
 
 </details>
