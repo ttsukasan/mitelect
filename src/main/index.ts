@@ -1,7 +1,7 @@
-import { app, Menu, Tray, shell } from 'electron'
+import { app, Menu, Tray, shell, Notification } from 'electron'
 import notifier from 'node-notifier'
 import store from './config'
-import { getLargeIconPath, initTray, openEditor } from './appHelper'
+import { getLargeIconPath, initTray, isWin, openEditor } from './appHelper'
 import MiterasClient from './MiterasClient'
 
 let tray: Tray | null = null
@@ -14,14 +14,23 @@ async function openConfigFile(): Promise<void> {
 
 // デスクトップ通知のヘルパー関数
 function showNotification(title: string, body: string): void {
-  notifier.notify({
-    title: title,
-    message: body,
-    icon: getLargeIconPath(),
-    sound: true,
-    wait: true,
-    appID: 'MiteTray'
-  })
+  // winではnode-notifier, macではNotificationを使うと通知が通りやすい（自分調べ
+  if (isWin()) {
+    notifier.notify({
+      title: title,
+      message: body,
+      icon: getLargeIconPath(),
+      sound: true,
+      wait: true,
+      appID: 'MiteTray'
+    })
+  } else {
+    new Notification({
+      title,
+      body,
+      silent: false
+    }).show()
+  }
 }
 
 // サイトを開く

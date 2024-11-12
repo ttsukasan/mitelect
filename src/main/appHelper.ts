@@ -3,13 +3,18 @@ import path from 'path'
 import { exec } from 'child_process'
 
 function getTrayIconPath(): string {
-  const fileName =
-    {
-      darwin: 'beeTemplate.png',
-      win32: 'bee.ico'
-    }[process.platform] || 'bee_16.png'
-
+  let fileName = 'bee_16.png' // linux?
+  fileName = isMac() ? 'beeTemplate.png' : fileName
+  fileName = isWin() ? 'bee.ico' : fileName
   return path.join(app.getAppPath(), 'resources', fileName)
+}
+
+export function isMac(): boolean {
+  return process.platform === 'darwin'
+}
+
+export function isWin(): boolean {
+  return process.platform === 'win32'
 }
 
 export function getLargeIconPath(): string {
@@ -25,7 +30,7 @@ export function initTray(): Tray {
 
 // Windows: Notepadで開く, macOS: 標準のエディタで開く
 export function openEditor(filePath: string): void {
-  if (process.platform === 'win32') {
+  if (isWin()) {
     exec(`notepad.exe "${filePath}"`)
   } else {
     shell.openPath(filePath).then((result) => {
