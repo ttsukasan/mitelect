@@ -1,10 +1,6 @@
-# mitelecton
+# MiteTray <img src="./resources/icon.png" height="24">
 
-A minimal Electron application with TypeScript
-
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+システムトレーに常駐するMiterasクライアント
 
 ## Project Setup
 
@@ -28,7 +24,13 @@ $ npm run build:win
 
 # For macOS
 $ npm run build:mac
-
-# For Linux
-$ npm run build:linux
 ```
+
+## 参考にしました
+
+https://github.com/sinsoku/miteras-cli/
+
+
+## 素材
+
+https://www.flaticon.com/free-icon/bee_2831662
