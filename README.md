@@ -30,7 +30,6 @@ $ npm run build:mac
 
 https://github.com/sinsoku/miteras-cli/
 
-
 ## 素材
 
 https://www.flaticon.com/free-icon/bee_2831662
