@@ -24,7 +24,7 @@ export function getLargeIconPath(): string {
 // システムトレーの初期設定、アイコン設定
 export function initTray(): Tray {
   const tray = new Tray(getTrayIconPath())
-  // tray.setToolTip('アプリ名')
+  tray.setToolTip(`MiteTray ${app.getVersion()}`)
   return tray
 }
 
