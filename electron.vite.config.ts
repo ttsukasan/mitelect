@@ -9,7 +9,7 @@ export default defineConfig({
         }
       }
     },
-        plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()]
   },
   preload: {
     build: {
