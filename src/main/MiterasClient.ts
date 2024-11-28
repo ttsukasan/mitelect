@@ -47,7 +47,7 @@ export default class MiterasClient {
   // 現在の日付を yyyy-mm-dd 形式で取得
   private getCurrentDate(): string {
     const date = new Date()
-    return date.toISOString().split('T')[0]
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
   }
 
   // ログインページのcsrfトークンを取得
